@@ -1,6 +1,5 @@
 package cn.candy.basic;
 
-
 import cn.candy.basic.utils.CandyJdbcC3p0Utils;
 import cn.candy.basic.utils.CandyJdbcBasicUtils;
 import cn.candy.basic.utils.CandyJdbcDruidUtils;

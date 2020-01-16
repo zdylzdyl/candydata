@@ -12,6 +12,7 @@ import java.util.Properties;
 
 /**
  * HikariCP 数据库连接池工具
+ * 参考链接：https://blog.csdn.net/ssxueyi/article/details/83505322
  *
  * @author : buxi
  * @date : 2020-01-16 15:56

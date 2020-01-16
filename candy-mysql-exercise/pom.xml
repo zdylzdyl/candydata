@@ -78,7 +78,6 @@
             <artifactId>HikariCP</artifactId>
             <version>3.4.1</version>
         </dependency>
-
         <!--HikariCP 中slf4j 与log4j绑定-->
         <!--http://osask.cn/front/ask/view/4705838-->
         <!--https://logging.apache.org/log4j/2.0/maven-artifacts.html-->
