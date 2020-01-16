@@ -1,12 +1,16 @@
 package cn.candy.basic;
 
 
-import cn.candy.basic.utils.CandyJdbcUtils;
+import cn.candy.basic.utils.CandyJdbcC3p0Utils;
+import cn.candy.basic.utils.CandyJdbcBasicUtils;
+import cn.candy.basic.utils.CandyJdbcDruidUtils;
+import cn.candy.basic.utils.CandyJdbcHikariUtils;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import java.sql.*;
 import java.util.Arrays;
+import java.util.Random;
 
 
 import static org.junit.Assert.assertTrue;
@@ -71,7 +75,7 @@ public class AppMySqlBasicTest {
     @Test
     public void testConnection2Mysql() throws SQLException {
         //获取连接执行测试查询
-        logger.debug("mysql connection is " + (CandyJdbcUtils.getConnection().
+        logger.debug("mysql connection is " + (CandyJdbcBasicUtils.getConnection().
                 prepareStatement("SELECT version()").executeQuery().next() ? "ok." : "error."));
     }
 
@@ -141,14 +145,13 @@ public class AppMySqlBasicTest {
         simpleConnection2Mysql();
     }
 
-
     /**
      * 2.1使用jdbcUtils工具类进行链接数据库
      */
     @Test
-    public void testCandyJdbcUtils2Mysql() throws SQLException {
+    public void testCandyJdbcBasicUtils2Mysql() throws SQLException {
         //1.获取链接
-        Connection connection = CandyJdbcUtils.getConnection();
+        Connection connection = CandyJdbcBasicUtils.getConnection();
         //2.查询mysql版本 select @@version; select version();
         String sql = "SELECT version()";
         //3.获取可执行对象preparedStatement
@@ -163,7 +166,6 @@ public class AppMySqlBasicTest {
         connection.close();
     }
 
-
     /**
      * 测试普通连接的查询
      *
@@ -174,7 +176,7 @@ public class AppMySqlBasicTest {
         //1.查询mysql 语句
         String sql = "SELECT * from test_user where name like '%乔%'";
         //2.获取可执行对象preparedStatement执行查询
-        getResultSetInfo2Log(CandyJdbcUtils.getConnection().prepareStatement(sql).executeQuery());
+        getResultSetInfo2Log(CandyJdbcBasicUtils.getConnection().prepareStatement(sql).executeQuery());
     }
 
     /**
@@ -185,7 +187,7 @@ public class AppMySqlBasicTest {
     @Test
     public void test2MysqlAdd() throws SQLException {
         //1.获得链接
-        Connection connection = CandyJdbcUtils.getConnection();
+        Connection connection = CandyJdbcBasicUtils.getConnection();
         //2.关闭自动提交事务，开启mysql事务
         connection.setAutoCommit(false);
         //3.mysql 增加语句
@@ -212,7 +214,7 @@ public class AppMySqlBasicTest {
     @Test
     public void test2MysqlDelete() throws SQLException {
         //1.获得链接
-        Connection connection = CandyJdbcUtils.getConnection();
+        Connection connection = CandyJdbcBasicUtils.getConnection();
         //2.关闭自动提交事务，开启mysql事务
         connection.setAutoCommit(false);
         //3.mysql 增加语句
@@ -239,7 +241,7 @@ public class AppMySqlBasicTest {
     @Test
     public void test2MysqlUpdate() throws SQLException {
         //1.获得链接
-        Connection connection = CandyJdbcUtils.getConnection();
+        Connection connection = CandyJdbcBasicUtils.getConnection();
         //2.关闭自动提交事务，开启mysql事务
         connection.setAutoCommit(false);
         //3.mysql 增加语句
@@ -259,6 +261,17 @@ public class AppMySqlBasicTest {
     }
 
     /**
+     * 获取查询结果 将结果输出到日志
+     */
+    private void quickGetResultSetInfo2Log(Connection connection, String sql) throws SQLException {
+        //获取查询结果
+        ResultSet executeAfterQuery = connection.prepareStatement(sql).executeQuery();
+        //将结果输出到日志
+        getResultSetInfo2Log(executeAfterQuery);
+        executeAfterQuery.close();
+    }
+
+    /**
      * 测试普通连接的增删改查及事务 测试mysql的默认隔离级别 可重复读
      * 读同一个事务内未提交内容
      * 1.开启事务 进行查询
@@ -270,18 +283,13 @@ public class AppMySqlBasicTest {
     @Test
     public void test2MysqlAll() throws SQLException {
         //1.获得链接
-        Connection connection = CandyJdbcUtils.getConnection();
+        Connection connection = CandyJdbcBasicUtils.getConnection();
         //2.关闭自动提交事务，开启mysql事务
         connection.setAutoCommit(false);
-
         //进行查询
         String querySql = "SELECT * from test_user where name like '%蛋糕%'";
-        //获取查询结果
-        ResultSet executeQuery = connection.prepareStatement(querySql).executeQuery();
-        //将结果输出到日志
-        getResultSetInfo2Log(executeQuery);
-        executeQuery.close();
-
+        //获取查询结果 将结果输出到日志
+        quickGetResultSetInfo2Log(connection, querySql);
         //增加一条数据
         String insertSql = "insert into test_user(name, phone) VALUE ('蛋糕test',19927492847)";
         //获取可执行对象preparedStatement执行查询
@@ -293,22 +301,97 @@ public class AppMySqlBasicTest {
             logger.error(result);
         }
 
-        //获取查询结果
-        ResultSet executeBeforeQuery = connection.prepareStatement(querySql).executeQuery();
-        //将结果输出到日志
-        getResultSetInfo2Log(executeBeforeQuery);
-        executeBeforeQuery.close();
-
+        //获取查询结果 将结果输出到日志
+        quickGetResultSetInfo2Log(connection, querySql);
         //提交事务
         connection.commit();
-
-        //获取查询结果
-        ResultSet executeAfterQuery = connection.prepareStatement(querySql).executeQuery();
-        //将结果输出到日志
-        getResultSetInfo2Log(executeAfterQuery);
-        executeAfterQuery.close();
-
+        //获取查询结果 将结果输出到日志
+        quickGetResultSetInfo2Log(connection, querySql);
         //关闭资源
         connection.close();
+    }
+
+    /**
+     * 测试c3p0连接池的连接
+     */
+    @Test
+    public void testC3p0Connection() throws SQLException {
+        //获取连接执行测试查询
+        logger.debug("mysql connection is " + (CandyJdbcC3p0Utils.getConnection().
+                prepareStatement("SELECT version()").executeQuery().next() ? "ok." : "error."));
+
+    }
+
+    /**
+     * 测试c3p0连接的增删改查及事务 测试mysql的默认隔离级别 可重复读
+     * 读同一个事务内未提交内容
+     * 1.开启事务 进行查询
+     * 2.增加一条数据 进行查询
+     * 3.删除一条数据 进行查询
+     * 3.关闭事务 另开事务重新查询
+     *
+     * @throws SQLException 抛出sql异常
+     */
+    @Test
+    public void test2MysqlC3p0All() throws SQLException {
+        //1.获得链接
+        Connection connection = CandyJdbcC3p0Utils.getConnection();
+        //2.关闭自动提交事务，开启mysql事务
+        connection.setAutoCommit(false);
+        //进行查询
+        String querySql = "SELECT * from test_user where name like '%蛋糕%'";
+        //获取查询结果 将结果输出到日志
+        quickGetResultSetInfo2Log(connection, querySql);
+        Long phoneNumber = new Random().nextInt(999999999) + 13000000000L;
+        //增加一条数据
+        String insertSql = String.format("insert into test_user(name, phone) VALUE ('蛋糕Test',%s)", phoneNumber);
+        //获取可执行对象preparedStatement执行查询
+        int updateNumber = connection.prepareStatement(insertSql).executeUpdate();
+        String result = String.format("insert sql:[%s],insert number:[%s]", insertSql, updateNumber);
+        if (updateNumber > 0) {
+            logger.debug(result);
+        } else {
+            logger.error(result);
+        }
+        //获取查询结果 将结果输出到日志
+        quickGetResultSetInfo2Log(connection, querySql);
+        //删除一条数据
+        String deleteSql = String.format("delete from test_user where phone = %s", phoneNumber);
+        //获取可执行对象preparedStatement执行查询
+        int deleteNumber = connection.prepareStatement(deleteSql).executeUpdate();
+        result = String.format("insert sql:[%s],insert number:[%s]", deleteSql, deleteNumber);
+        if (deleteNumber > 0) {
+            logger.debug(result);
+        } else {
+            logger.error(result);
+        }
+        //获取查询结果 将结果输出到日志
+        quickGetResultSetInfo2Log(connection, querySql);
+        //提交事务
+        connection.commit();
+        //获取查询结果 将结果输出到日志
+        quickGetResultSetInfo2Log(connection, querySql);
+        //关闭资源
+        connection.close();
+    }
+
+    /**
+     * 测试druid连接池的连接
+     */
+    @Test
+    public void testDruidConnection() throws SQLException {
+        //获取连接执行测试查询
+        logger.debug("mysql connection is " + (CandyJdbcDruidUtils.getConnection().
+                prepareStatement("SELECT version()").executeQuery().next() ? "ok." : "error."));
+    }
+
+    /**
+     * 测试druid连接池的连接
+     */
+    @Test
+    public void testHikariCPConnection() throws SQLException {
+        //获取连接执行测试查询
+        logger.debug("mysql connection is " + (CandyJdbcHikariUtils.getConnection().
+                prepareStatement("SELECT version()").executeQuery().next() ? "ok." : "error."));
     }
 }

@@ -6,15 +6,11 @@
 1. Mysql
 - 为了方便包管理使用了Maven做依赖管理
 - 由于用于测试mysql的基本方法，于是代码编写在Junit测试单元中，主要为了熟悉基础的JDBC写法
+- 测试基本的CRUD方法，及事务的使用，验证mysql默认事务隔离级别:不可重复读
 
 2. Redis
 
 all databases description
-
-
-
-CURD(全Maven处理依赖)
-
 
 - 使用数据库连接池(Druid/c3p0)操作数据库，优化链接
 - 使用mybatis操作数据库

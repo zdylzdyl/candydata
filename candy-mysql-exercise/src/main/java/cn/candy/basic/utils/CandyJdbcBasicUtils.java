@@ -11,8 +11,7 @@ import java.util.Properties;
  * @author : buxi
  * @date : 2020-01-16 10:12
  **/
-@SuppressWarnings("unused")
-public class CandyJdbcUtils {
+public class CandyJdbcBasicUtils {
     /**
      * mysql远程服务器
      */
@@ -37,7 +36,7 @@ public class CandyJdbcUtils {
         //1.创建Properties对象 使用properties读取配置
         Properties properties = new Properties();
         //2.尝试使用当前类加载器读取properties文件
-        InputStream inputStream = CandyJdbcUtils.class.getClassLoader().getResourceAsStream(mysqlPropertiesName);
+        InputStream inputStream = CandyJdbcBasicUtils.class.getClassLoader().getResourceAsStream(mysqlPropertiesName);
         try {
             //确认输入流存在
             assert inputStream != null;
